@@ -2,10 +2,10 @@
 (function (root) {
   'use strict';
   const palettes = {
-    mono: {name:'单色层次', colors:['#fff4e7','#fddaaa','#f6ad71','#b7542e'], advice:'单色层次：适合统一的封面与章节背景。用明暗形成结构；风险是中间色太接近时显得平。'},
-    adjacent: {name:'邻近暖色', colors:['#fff4e7','#e6be6c','#f6ad71','#c97c83'], advice:'邻近暖色：柔和且有温度。让金、杏桃、玫瑰中只有一个主导，避免所有色块同等抢眼。'},
-    contrast: {name:'杏橙 × 钴蓝', colors:['#f8f1e8','#f4b78b','#7398d1','#3e64ac'], advice:'杏橙 × 钴蓝：暖白与杏橙保留温度，蓝色承担结构。先比较色块面积与留白，重叠处发灰时减少覆盖。'},
-    neutral: {name:'冷中性 + 强调', colors:['#f4f5f3','#d5dede','#91a9b4','#3f708e'], advice:'冷中性 + 强调：适合内容较多的页面。保留一个蓝色锚点，避免全部灰化后失去品牌识别。'}
+    mono: {name:'Monochromatic', colors:['#fff4e7','#fddaaa','#f6ad71','#b7542e'], advice:'Monochromatic: use tonal separation for coherent covers and section backgrounds. Similar midtones can flatten the composition.'},
+    adjacent: {name:'Analogous warm', colors:['#fff4e7','#e6be6c','#f6ad71','#c97c83'], advice:'Analogous warm: let gold, apricot or rose lead. Keep the other colors subordinate.'},
+    contrast: {name:'Apricot × cobalt', colors:['#f8f1e8','#f4b78b','#7398d1','#3e64ac'], advice:'Apricot × cobalt: warm white and apricot set the atmosphere; blue supplies structure. Compare coverage and negative space; reduce overlap if it turns gray.'},
+    neutral: {name:'Neutral + accent', colors:['#f4f5f3','#d5dede','#91a9b4','#3f708e'], advice:'Neutral + accent: suitable for content-heavy pages. Keep a blue anchor to preserve visual identity.'}
   };
   // CSS background order is front to back. Positions/stops match the guide.
   const pools = [[1,.18,.28,.60],[2,.78,.28,.62],[3,.65,.95,.50],[2,.25,.88,.60]];

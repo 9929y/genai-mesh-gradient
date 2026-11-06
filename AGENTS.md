@@ -1,11 +1,8 @@
-# Agent entry / Agent 阅读入口
+# Agent entry
 
 For an agent working directly in this repository, read `SKILL.md` next. It is
 the execution workflow. A skill loader may load `SKILL.md` directly; do not
-assume every client auto-loads this file. README is the bilingual human guide.
-
-直接操作仓库时，下一步读 `SKILL.md`；通过 Skill 加载器使用时，通常直接进入
-`SKILL.md`。README 中“给使用者”和“给 Agent”的说明分别面向两种读者。
+assume every client auto-loads this file. README is the English-first human guide with a short Chinese summary.
 
 Read selectively:
 
@@ -23,7 +20,9 @@ When modifying the package:
 - Keep the research connection grounded in the two public papers linked from README.
   Distinguish agent orchestration and procedural rendering from trained diffusion
   models; do not claim paper reproduction, sole invention or unmeasured impact.
-- Maintain the single `index.html`; keep English and Chinese README sections aligned.
+- Maintain the single `index.html` and existing README. Use English for primary
+  explanations, controls and captions, with concise Chinese support. Keep project
+  introductions and footers free of personal-name attribution; retain legal notices.
 - Use the real Figma samples as visual targets. The old `petal` sketch is not a
   faithful Flower example. Label native exports, controlled variants and new
   procedural studies accurately; keep original references unchanged.

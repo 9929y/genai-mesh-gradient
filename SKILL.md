@@ -5,10 +5,9 @@ description: A research-informed GenAI visual-generation workflow. Translate use
 
 # GenAI Mesh Gradient
 
-A research-informed agent skill for controllable visual generation, developed
-by Yanice Yang (research publications: Liuqingqing Yang). The workflow connects
+A research-informed agent skill for controllable visual generation. The workflow connects
 user input, explicit design constraints and feedback to editable visual output.
-Read the bilingual README for the two related papers and the precise connection.
+Read the English-first README for the two related papers and the precise connection.
 This package supplies agent instructions and procedural renderers; it does not
 implement or reproduce the papers' trained diffusion models. Do not present
 their reported metrics as results for this skill or infer sole invention from
