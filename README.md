@@ -14,16 +14,16 @@ consistent brand visuals.
 ## Samples
 
 Six native Figma studies, each **1536×1024 (3:2)**, share a blue, apricot and warm-white
-palette. The JPEGs are flattened previews; the recipes and builder describe
+palette. The WebP images are flattened full-size previews; the recipes and builder describe
 their editable construction. These are the existing October 24 studies.
 
 | Sky-inspired | Dreamlike |
 |---|---|
-| <img src="design/illustrations/sky-blue-orange.jpg" width="384" height="256" alt="Sky: blue and apricot"> | <img src="design/illustrations/dreamlike-blue-orange.jpg" width="384" height="256" alt="Dreamlike: offset light and shadow"> |
+| <img src="design/illustrations/sky-blue-orange.webp" width="384" height="256" alt="Sky: blue and apricot"> | <img src="design/illustrations/dreamlike-blue-orange.webp" width="384" height="256" alt="Dreamlike: offset light and shadow"> |
 | Flower-inspired | Diffuse |
-| <img src="design/illustrations/flower-soft-blue-orange.jpg" width="384" height="256" alt="Flower: cropped translucent planes"> | <img src="design/illustrations/diffuse-blue-orange.jpg" width="384" height="256" alt="Diffuse: blue mist and warm paper"> |
+| <img src="design/illustrations/flower-soft-blue-orange.webp" width="384" height="256" alt="Flower: cropped translucent planes"> | <img src="design/illustrations/diffuse-blue-orange.webp" width="384" height="256" alt="Diffuse: blue mist and warm paper"> |
 | Heightmap | Multipoint |
-| <img src="design/illustrations/heightmap-soft-blue-orange.jpg" width="384" height="256" alt="Heightmap: peaks, saddles and ridges"> | <img src="design/illustrations/multipoint-blue-orange.jpg" width="384" height="256" alt="Multipoint: eleven Gaussian fields"> |
+| <img src="design/illustrations/heightmap-soft-blue-orange.webp" width="384" height="256" alt="Heightmap: peaks, saddles and ridges"> | <img src="design/illustrations/multipoint-blue-orange.webp" width="384" height="256" alt="Multipoint: eleven Gaussian fields"> |
 
 | Study | Native construction | Reference settings |
 |---|---|---|
