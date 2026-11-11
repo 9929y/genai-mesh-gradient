@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Deterministic original mesh studies. Python 3 standard library only."""
 import argparse
+import hashlib
 import html
 import math
 from pathlib import Path
@@ -22,6 +23,11 @@ def render_svg(effect='atmospheric', width=1200, height=800, seed=17,
         raise ValueError('Supply 2..12 #RRGGBB colors')
     if not math.isfinite(texture) or not 0 <= texture <= .2:
         raise ValueError('Texture must be between 0 and .2')
+    # Prefix every id that url(#...) or aria refer to, so two different outputs
+    # inlined in one HTML page cannot resolve each other's gradients or filters.
+    # Same inputs give the same prefix, keeping the output deterministic.
+    key = repr((effect, width, height, seed, tuple(palette), transparent, texture))
+    p = 'mg' + hashlib.sha1(key.encode()).hexdigest()[:8] + '-'
     rng = random.Random(seed)
     defs = []
     shapes = []
@@ -29,7 +35,7 @@ def render_svg(effect='atmospheric', width=1200, height=800, seed=17,
     d = min(width, height)
     for i in range(count):
         color = palette[1 + i % (len(palette)-1)]
-        gid = f'gradient-{i}'
+        gid = f'{p}gradient-{i}'
         defs.append(f'<radialGradient id="{gid}"><stop offset="0" stop-color="{color}"/>'
                     f'<stop offset=".28" stop-color="{color}" stop-opacity=".90"/>'
                     f'<stop offset="1" stop-color="{color}" stop-opacity="0"/></radialGradient>')
@@ -57,30 +63,30 @@ def render_svg(effect='atmospheric', width=1200, height=800, seed=17,
                           f'rx="{rx:.3f}" ry="{ry:.3f}" fill="url(#{gid})" '
                           f'transform="rotate({angle:.3f} {cx:.3f} {cy:.3f})"/>')
     if effect == 'pigment':
-        defs.append(f'<filter id="bleed" x="-20%" y="-20%" width="140%" height="140%" '
+        defs.append(f'<filter id="{p}bleed" x="-20%" y="-20%" width="140%" height="140%" '
                     f'color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" '
                     f'baseFrequency="{5/d:.6f} {9/d:.6f}" numOctaves="2" seed="{seed % 10000}" '
                     f'result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" '
                     f'scale="{d*.045:.3f}" xChannelSelector="R" yChannelSelector="G"/></filter>')
     if texture:
-        defs.append(f'<filter id="grain" x="0" y="0" width="100%" height="100%" '
+        defs.append(f'<filter id="{p}grain" x="0" y="0" width="100%" height="100%" '
                     f'color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" '
                     f'baseFrequency=".75" numOctaves="2" seed="{seed % 10000}" result="noise"/>'
                     f'<feColorMatrix in="noise" type="saturate" values="0"/>'
                     f'<feComposite in2="SourceGraphic" operator="in"/></filter>')
     bg = '' if transparent else f'<rect id="base" width="100%" height="100%" fill="{palette[0]}"/>'
-    attr = ' filter="url(#bleed)"' if effect == 'pigment' else ''
+    attr = f' filter="url(#{p}bleed)"' if effect == 'pigment' else ''
     masses = f'<g id="color-masses"{attr}>' + ''.join(shapes) + '</g>'
     # Grain is clipped to artwork alpha. Transparent corners do not get a gray sheet.
     if texture:
         alpha_shapes = re.sub(r' id="[^"]+"', '', bg + masses)
-        defs.append('<mask id="art-alpha" mask-type="alpha">' + alpha_shapes + '</mask>')
-    grain = (f'<g mask="url(#art-alpha)"><rect id="texture" width="100%" height="100%" '
-             f'fill="white" opacity="{texture}" filter="url(#grain)"/></g>') if texture else ''
+        defs.append(f'<mask id="{p}art-alpha" mask-type="alpha">' + alpha_shapes + '</mask>')
+    grain = (f'<g mask="url(#{p}art-alpha)"><rect id="texture" width="100%" height="100%" '
+             f'fill="white" opacity="{texture}" filter="url(#{p}grain)"/></g>') if texture else ''
     title = html.escape(f'{effect} — original procedural study, seed {seed}')
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
-            f'viewBox="0 0 {width} {height}" role="img" aria-labelledby="title">'
-            f'<title id="title">{title}</title><defs>'+''.join(defs)+'</defs>'
+            f'viewBox="0 0 {width} {height}" role="img" aria-labelledby="{p}title">'
+            f'<title id="{p}title">{title}</title><defs>'+''.join(defs)+'</defs>'
             +bg+masses+grain+'</svg>')
 
 
