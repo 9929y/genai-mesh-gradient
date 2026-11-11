@@ -9,6 +9,8 @@
   };
   // CSS background order is front to back. Positions/stops match the guide.
   const pools = [[1,.18,.28,.60],[2,.78,.28,.62],[3,.65,.95,.50],[2,.25,.88,.60]];
+  // Round emitted numbers to 3 decimals: no visible change, far shorter markup.
+  const n3 = v => +v.toFixed(3);
   function colorsValid(colors) {
     if (!Array.isArray(colors)||colors.length!==4||colors.some(c=>!/^#[0-9a-f]{6}$/i.test(c))) throw new Error('Supply four #RRGGBB role colors');
     return colors;
@@ -19,7 +21,7 @@
   }
   function paletteCSS(colors) {
     const c=colorsValid(colors);
-    return pools.map(([k,x,y,end])=>`radial-gradient(ellipse at ${x*100}% ${y*100}%,${c[k]} 0%,transparent ${end*100}%)`).join(',')+','+c[0];
+    return pools.map(([k,x,y,end])=>`radial-gradient(ellipse at ${n3(x*100)}% ${n3(y*100)}%,${c[k]} 0%,transparent ${n3(end*100)}%)`).join(',')+','+c[0];
   }
   function paletteSVG(key, width=1200, height=600) {
     const c=paletteColors(key);
@@ -27,7 +29,7 @@
     const defs=pools.map(([k,x,y,end],i)=>{
       const rx=Math.SQRT2*Math.max(x,1-x)*width;
       const ry=Math.SQRT2*Math.max(y,1-y)*height;
-      return `<radialGradient id="pool${i}" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" gradientTransform="translate(${x*width} ${y*height}) scale(${rx} ${ry})"><stop stop-color="${c[k]}"/><stop offset="${end}" stop-color="${c[k]}" stop-opacity="0"/></radialGradient>`;
+      return `<radialGradient id="pool${i}" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1" gradientTransform="translate(${n3(x*width)} ${n3(y*height)}) scale(${n3(rx)} ${n3(ry)})"><stop stop-color="${c[k]}"/><stop offset="${end}" stop-color="${c[k]}" stop-opacity="0"/></radialGradient>`;
     }).join('');
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><title>${key} / fixed four-pool palette study</title><defs>${defs}</defs><rect width="100%" height="100%" fill="${c[0]}"/>`+pools.map((_,i)=>i).reverse().map(i=>`<rect width="100%" height="100%" fill="url(#pool${i})"/>`).join('')+'</svg>';
   }
@@ -52,9 +54,9 @@
   function layoutSVG(spec, showQuiet=true) {
     const {width:w,height:h,regions,quietZone:q}=spec;
     const prefix=`layout-${w}-${h}-`;
-    const defs=regions.map((r,i)=>`<radialGradient id="${prefix}mass${i}">`+Array.from({length:49},(_,k)=>`<stop offset="${k/48}" stop-color="${r.color}" stop-opacity="${k===48?0:Math.exp(-8*(k/48)**2)*r.alpha}"/>`).join('')+'</radialGradient>').join('');
-    const masses=regions.map((r,i)=>`<ellipse cx="0" cy="0" rx="${r.rx*w}" ry="${r.ry*h}" transform="translate(${r.x*w} ${r.y*h}) rotate(${r.angle})" fill="url(#${prefix}mass${i})"/>`).join('');
-    const quiet=showQuiet?`<rect x="${q.x*w}" y="${q.y*h}" width="${q.width*w}" height="${q.height*h}" rx="${.008*Math.min(w,h)}" fill="white" fill-opacity=".38" stroke="#60472e" stroke-opacity=".6" stroke-width="${Math.min(w,h)*.002}" stroke-dasharray="${Math.min(w,h)*.01} ${Math.min(w,h)*.008}"/><text x="${(q.x+.025)*w}" y="${(q.y+.04)*h}" fill="#493d33" font-family="sans-serif" font-size="${Math.min(w,h)*.022}">TITLE ZONE</text>`:'';
+    const defs=regions.map((r,i)=>`<radialGradient id="${prefix}mass${i}">`+Array.from({length:49},(_,k)=>`<stop offset="${n3(k/48)}" stop-color="${r.color}" stop-opacity="${k===48?0:n3(Math.exp(-8*(k/48)**2)*r.alpha)}"/>`).join('')+'</radialGradient>').join('');
+    const masses=regions.map((r,i)=>`<ellipse cx="0" cy="0" rx="${n3(r.rx*w)}" ry="${n3(r.ry*h)}" transform="translate(${n3(r.x*w)} ${n3(r.y*h)}) rotate(${n3(r.angle)})" fill="url(#${prefix}mass${i})"/>`).join('');
+    const quiet=showQuiet?`<rect x="${n3(q.x*w)}" y="${n3(q.y*h)}" width="${n3(q.width*w)}" height="${n3(q.height*h)}" rx="${n3(.008*Math.min(w,h))}" fill="white" fill-opacity=".38" stroke="#60472e" stroke-opacity=".6" stroke-width="${n3(Math.min(w,h)*.002)}" stroke-dasharray="${n3(Math.min(w,h)*.01)} ${n3(Math.min(w,h)*.008)}"/><text x="${n3((q.x+.025)*w)}" y="${n3((q.y+.04)*h)}" fill="#493d33" font-family="sans-serif" font-size="${n3(Math.min(w,h)*.022)}">TITLE ZONE</text>`:'';
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${spec.layout} recomposed palette study"><defs>${defs}</defs><rect width="100%" height="100%" fill="${spec.base}"/>${masses}${quiet}</svg>`;
   }
   const api={palettes,pools,paletteCSS,paletteSVG,layoutSpec,layoutSVG};
