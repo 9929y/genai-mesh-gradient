@@ -95,8 +95,8 @@ not a mandatory default. A new controlled comparison on the blue/orange
 Sky study changed all five layer-blur radii to 100 / 150 / 200 px on
 temporary copies. Geometry, fills, ordering and opacity stayed fixed. The
 three source PNGs were actually exported from Figma; copies were then removed.
-The public guide uses full-resolution quality-95 JPEG encodings for smaller
-page downloads. They are viewing samples, not lossless pixel-comparison targets.
+The public guide uses full-resolution (1536×1024) quality-88 WebP encodings,
+re-encoded from the earlier quality-95 JPEGs, for smaller page downloads. They are viewing samples, not lossless pixel-comparison targets.
 
 Use `blur = b * min(width,height) / 1024`, choosing b for the intended structure, not imposing one interval:
 

@@ -10,8 +10,10 @@ function buildMesh(figma, spec) {
     return { r: parseInt(hex.slice(1,3),16)/255,
       g: parseInt(hex.slice(3,5),16)/255, b: parseInt(hex.slice(5,7),16)/255 };
   };
+  // Figma's resize() rejects sizes below 0.01, so check that here, not mid-build.
+  const MIN_SIZE = 0.01;
   const width = finite(spec.width, 'width'), height = finite(spec.height, 'height');
-  if (width <= 0 || height <= 0 || width > 16384 || height > 16384) throw new Error('Invalid canvas size');
+  if (width < MIN_SIZE || height < MIN_SIZE || width > 16384 || height > 16384) throw new Error('Invalid canvas size');
   const x = finite(spec.x, 'canvas x'), y = finite(spec.y, 'canvas y');
   const baseColor = spec.base === null ? null : rgb(spec.base || '#f2d5c5');
   if (!Array.isArray(spec.regions) || !spec.regions.length || spec.regions.length > 256) {
@@ -25,38 +27,47 @@ function buildMesh(figma, spec) {
     const alpha = finite(r.alpha ?? 1, 'alpha');
     const angle = finite(r.angle ?? 0, 'angle');
     if (alpha < 0 || alpha > 1) throw new Error('Invalid alpha');
+    if (r.rx * 2 * width < MIN_SIZE || r.ry * 2 * height < MIN_SIZE) {
+      throw new Error(`Region ${i} is smaller than Figma's minimum layer size`);
+    }
     return {...r, color, alpha, angle};
   });
   const affectedParentId = figma.currentPage.id;
   const frame = figma.createFrame();
   const createdNodeIds = [frame.id];
   const massNodes = [];
-  frame.name = spec.name || 'Mesh / radial field';
-  frame.resize(width, height);
-  frame.x = x; frame.y = y; frame.clipsContent = true;
-  frame.fills = baseColor ? [{type:'SOLID', color:baseColor}] : [];
-  for (const [i,r] of regions.entries()) {
-    const group = figma.createFrame();
-    createdNodeIds.push(group.id); frame.appendChild(group);
-    group.name = `Mass ${i+1} / move-scale-rotate`;
-    const w=r.rx*2*width, h=r.ry*2*height;
-    group.resize(w,h);group.fills=[];group.clipsContent=false;group.opacity=r.alpha;
-    const a=r.angle*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
-    group.relativeTransform=[[c,-s,r.x*width-c*w/2+s*h/2],
-      [s,c,r.y*height-s*w/2-c*h/2]];
-    const mask=figma.createRectangle();createdNodeIds.push(mask.id);
-    group.appendChild(mask);mask.resize(w,h);mask.name='Soft boundary / alpha mask';
-    mask.strokes=[];
-    mask.fills = [{type:'GRADIENT_RADIAL',
-      gradientTransform:[[1,0,0],[0,1,0]],
-      gradientStops:Array.from({length:49},(_,k)=>({position:k/48,
-        color:{r:0,g:0,b:0,a:k===48?0:Math.exp(-8*(k/48)**2)}}))}];
-    mask.isMask=true;mask.maskType='ALPHA';
-    const color=figma.createRectangle();createdNodeIds.push(color.id);
-    group.appendChild(color);color.resize(w,h);color.name='Color / edit Fill';
-    color.strokes=[];color.fills=[{type:'SOLID',color:r.color}];
-    massNodes.push({groupId:group.id,maskId:mask.id,colorId:color.id,
-      center:{x:r.x,y:r.y},halfExtent:{x:r.rx,y:r.ry},angle:r.angle,alpha:r.alpha});
+  try {
+    frame.name = String(spec.name || 'Mesh / radial field');
+    frame.resize(width, height);
+    frame.x = x; frame.y = y; frame.clipsContent = true;
+    frame.fills = baseColor ? [{type:'SOLID', color:baseColor}] : [];
+    for (const [i,r] of regions.entries()) {
+      const group = figma.createFrame();
+      createdNodeIds.push(group.id); frame.appendChild(group);
+      group.name = `Mass ${i+1} / move-scale-rotate`;
+      const w=r.rx*2*width, h=r.ry*2*height;
+      group.resize(w,h);group.fills=[];group.clipsContent=false;group.opacity=r.alpha;
+      const a=r.angle*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
+      group.relativeTransform=[[c,-s,r.x*width-c*w/2+s*h/2],
+        [s,c,r.y*height-s*w/2-c*h/2]];
+      const mask=figma.createRectangle();createdNodeIds.push(mask.id);
+      group.appendChild(mask);mask.resize(w,h);mask.name='Soft boundary / alpha mask';
+      mask.strokes=[];
+      mask.fills = [{type:'GRADIENT_RADIAL',
+        gradientTransform:[[1,0,0],[0,1,0]],
+        gradientStops:Array.from({length:49},(_,k)=>({position:k/48,
+          color:{r:0,g:0,b:0,a:k===48?0:Math.exp(-8*(k/48)**2)}}))}];
+      mask.isMask=true;mask.maskType='ALPHA';
+      const color=figma.createRectangle();createdNodeIds.push(color.id);
+      group.appendChild(color);color.resize(w,h);color.name='Color / edit Fill';
+      color.strokes=[];color.fills=[{type:'SOLID',color:r.color}];
+      massNodes.push({groupId:group.id,maskId:mask.id,colorId:color.id,
+        center:{x:r.x,y:r.y},halfExtent:{x:r.rx,y:r.ry},angle:r.angle,alpha:r.alpha});
+    }
+  } catch (error) {
+    // Roll back so a failed build never leaves a half-built frame in the file.
+    if (!frame.removed) frame.remove();
+    throw error;
   }
   return {frameId:frame.id, createdNodeIds, mutatedNodeIds:[affectedParentId],
     bounds:{x,y,width,height}, regionCount:regions.length,massNodes,
