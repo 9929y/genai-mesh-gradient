@@ -13,12 +13,16 @@
     if (!Array.isArray(colors)||colors.length!==4||colors.some(c=>!/^#[0-9a-f]{6}$/i.test(c))) throw new Error('Supply four #RRGGBB role colors');
     return colors;
   }
+  function paletteColors(key) {
+    if (!Object.prototype.hasOwnProperty.call(palettes, key)) throw new Error(`Unknown palette "${key}"; use ${Object.keys(palettes).join(', ')}`);
+    return colorsValid(palettes[key].colors);
+  }
   function paletteCSS(colors) {
     const c=colorsValid(colors);
     return pools.map(([k,x,y,end])=>`radial-gradient(ellipse at ${x*100}% ${y*100}%,${c[k]} 0%,transparent ${end*100}%)`).join(',')+','+c[0];
   }
   function paletteSVG(key, width=1200, height=600) {
-    const c=colorsValid(palettes[key]?.colors);
+    const c=paletteColors(key);
     if (![width,height].every(n=>Number.isFinite(n)&&n>0&&n<=16384)) throw new Error('Invalid size');
     const defs=pools.map(([k,x,y,end],i)=>{
       const rx=Math.SQRT2*Math.max(x,1-x)*width;
@@ -29,7 +33,7 @@
   }
   function layoutSpec(width, height, key='contrast') {
     if (![width,height].every(n=>Number.isFinite(n)&&n>0&&n<=16384)) throw new Error('Invalid canvas size');
-    const c=colorsValid(palettes[key]?.colors), short=Math.min(width,height), ratio=width/height;
+    const c=paletteColors(key), short=Math.min(width,height), ratio=width/height;
     let layout, quietZone, regions;
     // [color index, normalized center, short-side support half-extents, angle, alpha]
     if (ratio>=1.35) {

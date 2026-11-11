@@ -9,15 +9,17 @@ function buildBlueOrangeStudies(figma, options) {
   const H={detail:1,warp:1,levels:40,blurMin:24,blurMax:38,...(options?.heightmap||{})};
   if(![H.detail,H.warp,H.levels,H.blurMin,H.blurMax].every(Number.isFinite)||H.detail<0||H.detail>2||H.warp<0||H.warp>2||!Number.isInteger(H.levels)||H.levels<12||H.levels>80||H.blurMin<0||H.blurMax<H.blurMin||H.blurMax>200)throw new Error('Invalid Heightmap controls');
   const P={cream:'#F8F1E8',white:'#FFF7EB',ice:'#DFE8F4',mist:'#B9CEE9',blue:'#7398D1',cobalt:'#3E64AC',navy:'#263C78',orange:'#EB7D45',peach:'#F4B78B',pale:'#F8D8B9'};
-  const ids=[],boards=[],s=Math.min(width,height)/1024;
+  const ids=[],boards=[],frames=[],s=Math.min(width,height)/1024;
   const rgb=hex=>({r:parseInt(hex.slice(1,3),16)/255,g:parseInt(hex.slice(3,5),16)/255,b:parseInt(hex.slice(5,7),16)/255});
   const solid=hex=>({type:'SOLID',color:rgb(hex)});
   function linear(colors,angle=0){const a=angle*Math.PI/180,c=Math.cos(a),v=Math.sin(a);return{type:'GRADIENT_LINEAR',gradientTransform:[[c,v,.5-.5*c-.5*v],[-v,c,.5+.5*v-.5*c]],gradientStops:colors.map((hex,i)=>({position:i/(colors.length-1),color:{...rgb(hex),a:1}}))};}
   function blur(n,r){n.effects=r?[{type:'LAYER_BLUR',radius:r*s,visible:true}]:[];}
-  function board(key,name,index,fill){const f=figma.createFrame();ids.push(f.id);f.name=`Mesh study / ${key} / ${name}`;f.resize(width,height);f.x=x+(index%3)*(width+200*s);f.y=y+Math.floor(index/3)*(height+200*s);f.fills=[fill||solid(P.cream)];f.clipsContent=true;boards.push({key,id:f.id,name,width,height});return f;}
-  function path(f,name,d,colors,angle=0,radius=0,alpha=1){const v=figma.createVector();ids.push(v.id);f.appendChild(v);v.name=name;v.x=0;v.y=0;let k=0;const data=d.replace(/-?\d+(?:\.\d+)?/g,n=>(Number(n)*(k++%2?height/1024:width/1536)).toFixed(3));v.vectorPaths=[{windingRule:'NONZERO',data}];v.fills=[Array.isArray(colors)?linear(colors,angle):solid(colors)];v.strokes=[];v.opacity=alpha;blur(v,radius);return v;}
+  function board(key,name,index,fill){const f=figma.createFrame();ids.push(f.id);frames.push(f);f.name=`Mesh study / ${key} / ${name}`;f.resize(width,height);f.x=x+(index%3)*(width+200*s);f.y=y+Math.floor(index/3)*(height+200*s);f.fills=[fill||solid(P.cream)];f.clipsContent=true;boards.push({key,id:f.id,name,width,height});return f;}
+  function path(f,name,d,colors,angle=0,radius=0,alpha=1){const v=figma.createVector();ids.push(v.id);f.appendChild(v);v.name=name;v.x=0;v.y=0;let k=0;const data=d.replace(/-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi,n=>(Number(n)*(k++%2?height/1024:width/1536)).toFixed(3));v.vectorPaths=[{windingRule:'NONZERO',data}];v.fills=[Array.isArray(colors)?linear(colors,angle):solid(colors)];v.strokes=[];v.opacity=alpha;blur(v,radius);return v;}
   function pool(f,name,color,cx,cy,rx,ry,alpha=1,radius=0,angle=0){const v=figma.createRectangle();ids.push(v.id);f.appendChild(v);v.name=name;const w=rx*2*width,h=ry*2*height;v.resize(w,h);const a=angle*Math.PI/180,c=Math.cos(a),q=Math.sin(a);v.relativeTransform=[[c,-q,cx*width-c*w/2+q*h/2],[q,c,cy*height-q*w/2-c*h/2]];v.strokes=[];v.fills=[{type:'GRADIENT_RADIAL',gradientTransform:[[1,0,0],[0,1,0]],gradientStops:[{position:0,color:{...rgb(color),a:alpha}},{position:.28,color:{...rgb(color),a:alpha*.84}},{position:.68,color:{...rgb(color),a:alpha*.28}},{position:1,color:{...rgb(color),a:0}}]}];blur(v,radius);return v;}
 
+  // Roll back every board on failure so the page never keeps a partial set.
+  try{
   if(keys.includes('sky')){
     const sky=board('sky','Apricot current / blue hour',0,linear([P.navy,P.blue,P.ice],-55));
     path(sky,'01 / broad diagonal apricot current','M -260 740 C 90 690 300 560 540 470 C 870 350 1050 210 1270 80 C 1450 -30 1590 -90 1780 -70 L 1800 510 C 1420 470 1230 600 970 720 C 680 850 320 1050 -260 1150 Z',[P.orange,P.peach,P.pale],-22,140,.97);
@@ -110,6 +112,7 @@ function buildBlueOrangeStudies(figma, options) {
   ]});
   ids.push(...mesh.createdNodeIds);boards.push({key:'multipoint',id:mesh.frameId,name:'Porcelain blue and apricot',width,height,massNodes:mesh.massNodes});
   }
+  }catch(error){for(const f of frames)if(!f.removed)f.remove();throw error;}
   return{createdNodeIds:ids,mutatedNodeIds:[figma.currentPage.id],boards,palette:P,heightmapSettings:keys.includes('heightmap')?H:undefined,referenceSize:{width:1536,height:1024},note:'All native, no imported reference bitmaps. Curve and radial studies are purpose-designed examples, not exact replays of historical artwork.'};
 }
 if(typeof module!=='undefined'&&module.exports)module.exports={buildBlueOrangeStudies};
